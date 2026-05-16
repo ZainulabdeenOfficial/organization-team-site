@@ -1,3 +1,4 @@
+![](https://org-team-card.zu4425.workers.dev/api/card.svg?org=Vector-OS&v=2026-05-16-3)
 # Organization Team Site
 
 A simple static website that lets you enter a GitHub organization name and displays:
@@ -7,6 +8,14 @@ A simple static website that lets you enter a GitHub organization name and displ
 It also lets you add custom URLs/links and generates:
 - a README.md-friendly Markdown snippet
 - an embeddable HTML snippet
+
+## Card service URL (important)
+GitHub Pages is static, so **`/api/card.svg` will not exist** on your Pages domain.
+
+To generate a dynamic SVG “card” (streak-card style), deploy the included Cloudflare Worker in `card-service/`, then set the **Card Service Base URL** in the UI.
+
+You can also set it via URL:
+- `?cardBase=https://your-worker.workers.dev`
 
 ## Local development
 Open `index.html` in your browser.

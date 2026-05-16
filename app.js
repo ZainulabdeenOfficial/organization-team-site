@@ -7,11 +7,52 @@ const state = {
   links: []
 };
 
-// IMPORTANT:
-// GitHub Pages is static, so `/api/card.svg` does NOT exist on the Pages domain.
-// Set this to your deployed card-service base URL (Cloudflare Worker) once deployed.
-// Example: https://org-team-card.<you>.workers.dev
-const CARD_SERVICE_BASE_URL = "";
+const CARD_SERVICE_BASE_URL_STORAGE_KEY = "orgTeamCardBaseUrl";
+
+function normalizeBaseUrl(url){
+  const trimmed = String(url || "").trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/\/$/, "");
+}
+
+function getCardServiceBaseUrl(){
+  // 1) Query param override: ?cardBase=https://...
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = normalizeBaseUrl(params.get("cardBase"));
+  if (fromQuery) return fromQuery;
+
+  // 2) Saved value
+  const fromStorage = normalizeBaseUrl(localStorage.getItem(CARD_SERVICE_BASE_URL_STORAGE_KEY));
+  if (fromStorage) return fromStorage;
+
+  // 3) No base URL configured
+  return "";
+}
+
+function setCardServiceBaseUrl(url){
+  const normalized = normalizeBaseUrl(url);
+  if (!normalized){
+    localStorage.removeItem(CARD_SERVICE_BASE_URL_STORAGE_KEY);
+  }else{
+    localStorage.setItem(CARD_SERVICE_BASE_URL_STORAGE_KEY, normalized);
+  }
+  return normalized;
+}
+
+function initCardServiceUi(){
+  const input = $("cardBaseInput");
+  const btn = $("saveCardBaseBtn");
+  if (!input || !btn) return;
+
+  // Prefill
+  input.value = getCardServiceBaseUrl();
+
+  btn.addEventListener("click", () => {
+    const normalized = setCardServiceBaseUrl(input.value);
+    input.value = normalized;
+    setStatus(normalized ? "Card service URL saved." : "Card service URL cleared.");
+  });
+}
 
 function setStatus(msg, isError=false){
   const el = $("status");
@@ -108,14 +149,14 @@ async function loadOrg(org){
 
 function cardUrlForOrg(org){
   const qs = `org=${encodeURIComponent(org)}`;
+  const base = getCardServiceBaseUrl();
 
-  // If you deployed the worker, this becomes a working full URL.
-  if (CARD_SERVICE_BASE_URL && CARD_SERVICE_BASE_URL.startsWith("http")){
-    return `${CARD_SERVICE_BASE_URL.replace(/\/$/, "")}/api/card.svg?${qs}`;
+  // If the user configured a Worker base URL, use it.
+  if (base && base.startsWith("http")){
+    return `${base}/api/card.svg?${qs}`;
   }
 
-  // Fallback: explain why it doesn't work on GitHub Pages
-  // (still returns a value so user can see what endpoint would be)
+  // Fallback: relative URL (will not work on GitHub Pages unless proxied)
   return `/api/card.svg?${qs}`;
 }
 
@@ -128,11 +169,6 @@ function buildReadmeMarkdown(){
   lines.push("");
   lines.push(`![${state.org} team card](${cardUrlForOrg(state.org)})`);
   lines.push("");
-
-  if (!CARD_SERVICE_BASE_URL){
-    lines.push("> Note: Set `CARD_SERVICE_BASE_URL` in `app.js` after deploying the card-service (Cloudflare Worker), otherwise the image URL won’t work on GitHub Pages.");
-    lines.push("");
-  }
 
   if (state.links.length){
     lines.push("## Links");
@@ -209,12 +245,7 @@ $("genCardUrlBtn").addEventListener("click", () => {
   if (!state.org) return setStatus("Load an org first.", true);
   $("output").value = buildCardUrl();
   enableCopyIfOutput();
-
-  if (!CARD_SERVICE_BASE_URL){
-    setStatus("Card URL generated, but won’t work on GitHub Pages until you deploy card-service and set CARD_SERVICE_BASE_URL.", true);
-  } else {
-    setStatus("Card URL generated.");
-  }
+  setStatus("Card URL generated.");
 });
 
 $("copyBtn").addEventListener("click", async () => {
@@ -226,6 +257,7 @@ $("copyBtn").addEventListener("click", async () => {
 
 $("output").addEventListener("input", enableCopyIfOutput);
 
+initCardServiceUi();
 renderLinks();
 renderPeople("ownersGrid", []);
 renderPeople("membersGrid", []);
