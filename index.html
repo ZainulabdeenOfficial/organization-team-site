@@ -28,6 +28,21 @@
     </section>
 
     <section class="card">
+      <h2>Card service (optional)</h2>
+      <p class="muted">GitHub Pages is static, so the dynamic SVG card must be served from a separate URL (e.g. the included Cloudflare Worker).</p>
+      <div class="row">
+        <label class="label">
+          Card Service Base URL
+          <input id="cardBaseInput" class="input" placeholder="https://your-worker.workers.dev" />
+        </label>
+        <button id="saveCardBaseBtn" class="btn secondary">Save</button>
+      </div>
+      <p class="muted small">
+        Tip: this is saved in your browser (localStorage). You can also set it via <code>?cardBase=https://...</code>.
+      </p>
+    </section>
+
+    <section class="card">
       <h2>Custom links</h2>
       <p class="muted">Add URLs you want included in the generated README/HTML output.</p>
 
