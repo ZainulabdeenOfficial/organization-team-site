@@ -7,6 +7,12 @@ const state = {
   links: []
 };
 
+// IMPORTANT:
+// GitHub Pages is static, so `/api/card.svg` does NOT exist on the Pages domain.
+// Set this to your deployed card-service base URL (Cloudflare Worker) once deployed.
+// Example: https://org-team-card.<you>.workers.dev
+const CARD_SERVICE_BASE_URL = "";
+
 function setStatus(msg, isError=false){
   const el = $("status");
   el.textContent = msg;
@@ -100,16 +106,33 @@ async function loadOrg(org){
   setStatus(`Loaded: ${state.owners.length} owner/admin, ${state.members.length} members (public).`);
 }
 
+function cardUrlForOrg(org){
+  const qs = `org=${encodeURIComponent(org)}`;
+
+  // If you deployed the worker, this becomes a working full URL.
+  if (CARD_SERVICE_BASE_URL && CARD_SERVICE_BASE_URL.startsWith("http")){
+    return `${CARD_SERVICE_BASE_URL.replace(/\/$/, "")}/api/card.svg?${qs}`;
+  }
+
+  // Fallback: explain why it doesn't work on GitHub Pages
+  // (still returns a value so user can see what endpoint would be)
+  return `/api/card.svg?${qs}`;
+}
+
 function buildReadmeMarkdown(){
   const lines = [];
   lines.push(`# ${state.org} team`);
   lines.push("");
 
-  // Card service usage
   lines.push("## Team card");
   lines.push("");
-  lines.push(`![${state.org} team card](https://YOUR-CARD-SERVICE.example/api/card.svg?org=${encodeURIComponent(state.org)})`);
+  lines.push(`![${state.org} team card](${cardUrlForOrg(state.org)})`);
   lines.push("");
+
+  if (!CARD_SERVICE_BASE_URL){
+    lines.push("> Note: Set `CARD_SERVICE_BASE_URL` in `app.js` after deploying the card-service (Cloudflare Worker), otherwise the image URL won’t work on GitHub Pages.");
+    lines.push("");
+  }
 
   if (state.links.length){
     lines.push("## Links");
@@ -134,13 +157,12 @@ function buildReadmeMarkdown(){
 }
 
 function buildHtmlEmbed(){
-  const cardUrl = `/api/card.svg?org=${encodeURIComponent(state.org)}`;
-  return `<!-- Org team card embed -->\n<img alt=\"${escapeAttr(state.org)} team card\" src=\"${cardUrl}\" />`;
+  const url = cardUrlForOrg(state.org);
+  return `<!-- Org team card embed -->\n<img alt="${escapeAttr(state.org)} team card" src="${url}" />`;
 }
 
 function buildCardUrl(){
-  // local relative path for card service; if deployed on a domain it becomes absolute
-  return `/api/card.svg?org=${encodeURIComponent(state.org)}`;
+  return cardUrlForOrg(state.org);
 }
 
 function enableCopyIfOutput(){
@@ -187,7 +209,12 @@ $("genCardUrlBtn").addEventListener("click", () => {
   if (!state.org) return setStatus("Load an org first.", true);
   $("output").value = buildCardUrl();
   enableCopyIfOutput();
-  setStatus("Card URL generated.");
+
+  if (!CARD_SERVICE_BASE_URL){
+    setStatus("Card URL generated, but won’t work on GitHub Pages until you deploy card-service and set CARD_SERVICE_BASE_URL.", true);
+  } else {
+    setStatus("Card URL generated.");
+  }
 });
 
 $("copyBtn").addEventListener("click", async () => {
