@@ -7,6 +7,19 @@ This folder contains an optional **card service** that behaves like GitHub strea
 - Fetches org owners(admin role) + public members from GitHub API
 - Returns an SVG "team card"
 
+## Customization (query params)
+You can customize the output like this:
+
+- `owners` (default `8`, max `12`)
+- `members` (default `14`, max `28`)
+- `theme` (one of: `dark`, `light`, `neon`, `ocean`)
+
+Example:
+
+```md
+![Org team card](https://org-team-card.<name>.workers.dev/api/card.svg?org=github&owners=8&members=14&theme=dark)
+```
+
 ## Deploy (Cloudflare Workers)
 1. Install deps:
    - `cd card-service`
@@ -19,12 +32,3 @@ This folder contains an optional **card service** that behaves like GitHub strea
 ### Optional: set a token
 To increase rate limits, set `GITHUB_TOKEN` as a Worker secret:
 - `npx wrangler secret put GITHUB_TOKEN`
-
-## Use in README
-After deploy, you will get a worker URL like `https://org-team-card.<name>.workers.dev`.
-
-Then embed:
-
-```md
-![Org team card](https://org-team-card.<name>.workers.dev/api/card.svg?org=github)
-```
