@@ -113,6 +113,17 @@ function getTheme(name: string | null): Theme {
   return THEMES[key] || THEMES.dark;
 }
 
+function buildAvatarProxyUrl(baseUrl: string, login: string, size: number) {
+  const u = new URL(baseUrl);
+  u.searchParams.set("u", login);
+  u.searchParams.set("s", String(size));
+  return u.toString();
+}
+
+function isValidGitHubLogin(login: string) {
+  return /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(login);
+}
+
 function buildAvatarPattern(login: string, href: string, x: number, y: number, size: number) {
   // Unique id per user+position to avoid collisions.
   const id = `av_${login.replace(/[^a-zA-Z0-9_-]/g, "_")}_${x}_${y}`;
@@ -134,48 +145,83 @@ function buildSvg(opts: {
   theme: Theme;
   ownersLimit: number;
   membersLimit: number;
+  cofounderLogin?: string;
+  avatarProxyBaseUrl: string;
 }) {
   const width = 900;
 
-  const title = `${opts.org} team`;
+  const title = `${opts.org} • Owner / Co-founder / Members`;
 
-  const owners = (opts.owners || []).slice(0, opts.ownersLimit);
+  const allOwners = opts.owners || [];
+  const chosenCofounder =
+    (opts.cofounderLogin &&
+      allOwners.find((u) => u.login.toLowerCase() === opts.cofounderLogin?.toLowerCase())) ||
+    allOwners[0];
+  const hasCofounder = Boolean(chosenCofounder) && opts.ownersLimit > 0;
+  const owners = allOwners
+    .filter((u) => (chosenCofounder ? u.login.toLowerCase() !== chosenCofounder.login.toLowerCase() : true))
+    .slice(0, Math.max(0, opts.ownersLimit - (hasCofounder ? 1 : 0)));
   const members = (opts.members || []).slice(0, opts.membersLimit);
 
   // Layout constants
   const padX = 44;
   const avatarSize = 42;
   const gap = 12;
+  const sectionGap = 34;
 
   const perRowOwners = 8;
   const perRowMembers = 7;
+  const ownerRowHeight = 74;
 
-  const ownersLabelY = 102;
-  const ownersY = 118;
+  const cofounderLabelY = 102;
+  const cofounderY = 118;
 
-  const membersLabelY = 206;
-  const membersY = 222;
+  const ownersLabelY = cofounderY + avatarSize + sectionGap;
+  const ownersY = ownersLabelY + 16;
 
   const memberRowHeight = 74;
+  const ownerRows = Math.max(1, Math.ceil(owners.length / perRowOwners));
+  const ownerBlockHeight = avatarSize + (ownerRows - 1) * ownerRowHeight;
+  const membersLabelY = ownersY + ownerBlockHeight + sectionGap;
+  const membersY = membersLabelY + 16;
   const memberRows = Math.max(1, Math.ceil(members.length / perRowMembers));
 
-  const height = 260 + (memberRows - 1) * memberRowHeight;
+  const membersBlockHeight = avatarSize + (memberRows - 1) * memberRowHeight;
+  const height = membersY + membersBlockHeight + 56;
 
   const defs: string[] = [];
   const shapes: string[] = [];
   const labels: string[] = [];
 
-  // Owners label
+  // Co-founder label
   labels.push(
-    `<text x="${padX}" y="${ownersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Owners</text>`
+    `<text x="${padX}" y="${cofounderLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Co-founder</text>`
+  );
+
+  if (chosenCofounder) {
+    const href = buildAvatarProxyUrl(opts.avatarProxyBaseUrl, chosenCofounder.login, avatarSize * 2);
+    const av = buildAvatarPattern(chosenCofounder.login, href, padX, cofounderY, avatarSize);
+    defs.push(av.def);
+    shapes.push(av.circle(opts.theme.avatarStroke));
+    labels.push(
+      `<text x="${padX + avatarSize / 2}" y="${cofounderY + avatarSize + 18}" text-anchor="middle" fill="${opts.theme.textMuted}" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-size="12">@${svgEscape(
+        chosenCofounder.login
+      )}</text>`
+    );
+  }
+
+  // Owner label
+  labels.push(
+    `<text x="${padX}" y="${ownersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Owner</text>`
   );
 
   owners.forEach((u, i) => {
     const col = i % perRowOwners;
+    const row = Math.floor(i / perRowOwners);
     const x = padX + col * (avatarSize + gap);
-    const y = ownersY;
+    const y = ownersY + row * ownerRowHeight;
 
-    const href = u.avatar_url || "";
+    const href = buildAvatarProxyUrl(opts.avatarProxyBaseUrl, u.login, avatarSize * 2);
     if (href) {
       const av = buildAvatarPattern(u.login, href, x, y, avatarSize);
       defs.push(av.def);
@@ -195,7 +241,7 @@ function buildSvg(opts: {
 
   // Members label
   labels.push(
-    `<text x="${padX}" y="${membersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Members (public)</text>`
+    `<text x="${padX}" y="${membersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Members</text>`
   );
 
   members.forEach((u, i) => {
@@ -204,7 +250,7 @@ function buildSvg(opts: {
     const x = padX + col * (avatarSize + gap);
     const y = membersY + row * memberRowHeight;
 
-    const href = u.avatar_url || "";
+    const href = buildAvatarProxyUrl(opts.avatarProxyBaseUrl, u.login, avatarSize * 2);
     if (href) {
       const av = buildAvatarPattern(u.login, href, x, y, avatarSize);
       defs.push(av.def);
@@ -265,6 +311,37 @@ export default {
     try {
       const url = new URL(request.url);
 
+      // Route: /api/avatar?u=LOGIN&s=SIZE
+      if (url.pathname.endsWith("/api/avatar")) {
+        const login = url.searchParams.get("u")?.trim();
+        if (!login) {
+          return new Response("Missing 'u' query param", { status: 400 });
+        }
+        if (!isValidGitHubLogin(login)) {
+          return new Response("Invalid GitHub username", { status: 400 });
+        }
+
+        const size = clampInt(Number(url.searchParams.get("s") || 84), 16, 256);
+        const avatarUrl = `https://avatars.githubusercontent.com/${encodeURIComponent(login)}?size=${size}`;
+        const upstream = await fetch(avatarUrl, {
+          headers: {
+            Accept: "image/*",
+            "User-Agent": "org-team-card"
+          }
+        });
+        if (!upstream.ok || !upstream.body) {
+          return new Response("Avatar not found", { status: upstream.status || 404 });
+        }
+
+        return new Response(upstream.body, {
+          status: 200,
+          headers: {
+            "Content-Type": upstream.headers.get("content-type") || "image/png",
+            "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400"
+          }
+        });
+      }
+
       // Route: /api/card.svg?org=ORG
       if (!url.pathname.endsWith("/api/card.svg")) {
         return new Response("Not found", { status: 404 });
@@ -277,7 +354,12 @@ export default {
 
       const ownersLimit = clampInt(Number(url.searchParams.get("owners") || 8), 1, 12);
       const membersLimit = clampInt(Number(url.searchParams.get("members") || 14), 1, 28);
+      const cofounderLogin = url.searchParams.get("cofounder")?.trim() || undefined;
       const theme = getTheme(url.searchParams.get("theme"));
+      const avatarProxyBaseUrl = new URL(request.url);
+      avatarProxyBaseUrl.pathname = avatarProxyBaseUrl.pathname.replace(/\/card\.svg$/, "/avatar");
+      avatarProxyBaseUrl.search = "";
+      avatarProxyBaseUrl.hash = "";
 
       // Validate org exists
       await ghJson(`https://api.github.com/orgs/${encodeURIComponent(org)}`, env.GITHUB_TOKEN);
@@ -299,7 +381,9 @@ export default {
         members: members || [],
         theme,
         ownersLimit,
-        membersLimit
+        membersLimit,
+        cofounderLogin,
+        avatarProxyBaseUrl: avatarProxyBaseUrl.toString()
       });
 
       return new Response(svg, {
