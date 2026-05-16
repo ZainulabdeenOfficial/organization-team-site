@@ -9,9 +9,8 @@ const state = {
 
 // IMPORTANT:
 // GitHub Pages is static, so `/api/card.svg` does NOT exist on the Pages domain.
-// Set this to your deployed card-service base URL (Cloudflare Worker) once deployed.
-// Example: https://org-team-card.<you>.workers.dev
-const CARD_SERVICE_BASE_URL = "";
+// This is the deployed card-service base URL (Cloudflare Worker).
+const CARD_SERVICE_BASE_URL = "https://org-team-card.zu4425.workers.dev";
 
 function setStatus(msg, isError=false){
   const el = $("status");
@@ -109,13 +108,10 @@ async function loadOrg(org){
 function cardUrlForOrg(org){
   const qs = `org=${encodeURIComponent(org)}`;
 
-  // If you deployed the worker, this becomes a working full URL.
   if (CARD_SERVICE_BASE_URL && CARD_SERVICE_BASE_URL.startsWith("http")){
     return `${CARD_SERVICE_BASE_URL.replace(/\/$/, "")}/api/card.svg?${qs}`;
   }
 
-  // Fallback: explain why it doesn't work on GitHub Pages
-  // (still returns a value so user can see what endpoint would be)
   return `/api/card.svg?${qs}`;
 }
 
@@ -128,11 +124,6 @@ function buildReadmeMarkdown(){
   lines.push("");
   lines.push(`![${state.org} team card](${cardUrlForOrg(state.org)})`);
   lines.push("");
-
-  if (!CARD_SERVICE_BASE_URL){
-    lines.push("> Note: Set `CARD_SERVICE_BASE_URL` in `app.js` after deploying the card-service (Cloudflare Worker), otherwise the image URL won’t work on GitHub Pages.");
-    lines.push("");
-  }
 
   if (state.links.length){
     lines.push("## Links");
@@ -209,12 +200,7 @@ $("genCardUrlBtn").addEventListener("click", () => {
   if (!state.org) return setStatus("Load an org first.", true);
   $("output").value = buildCardUrl();
   enableCopyIfOutput();
-
-  if (!CARD_SERVICE_BASE_URL){
-    setStatus("Card URL generated, but won’t work on GitHub Pages until you deploy card-service and set CARD_SERVICE_BASE_URL.", true);
-  } else {
-    setStatus("Card URL generated.");
-  }
+  setStatus("Card URL generated.");
 });
 
 $("copyBtn").addEventListener("click", async () => {
