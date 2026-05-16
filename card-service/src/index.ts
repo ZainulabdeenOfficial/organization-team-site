@@ -86,7 +86,7 @@ const THEMES: Record<ThemeName, Theme> = {
     textMuted: "rgba(246,247,255,0.70)",
     border: "rgba(255,255,255,0.16)",
     avatarStroke: "rgba(255,255,255,0.28)",
-    shadowOpacity: 0.40
+    shadowOpacity: 0.4
   },
   ocean: {
     bg0: "#061824",
@@ -212,8 +212,14 @@ function buildSvg(opts: {
 
   // Owner label
   labels.push(
-    `<text x="${padX}" y="${ownersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Owner</text>`
+    `<text x="${padX}" y="${ownersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Owners</text>`
   );
+
+  if (!owners.length) {
+    labels.push(
+      `<text x="${padX}" y="${ownersY + 18}" fill="${opts.theme.textMuted}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="14">No owners/admins are publicly visible for this org.</text>`
+    );
+  }
 
   owners.forEach((u, i) => {
     const col = i % perRowOwners;
@@ -243,6 +249,12 @@ function buildSvg(opts: {
   labels.push(
     `<text x="${padX}" y="${membersLabelY}" fill="${opts.theme.text}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" font-weight="700">Members</text>`
   );
+
+  if (!members.length) {
+    labels.push(
+      `<text x="${padX}" y="${membersY + 18}" fill="${opts.theme.textMuted}" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="14">No members are publicly visible for this org.</text>`
+    );
+  }
 
   members.forEach((u, i) => {
     const row = Math.floor(i / perRowMembers);
@@ -352,8 +364,8 @@ export default {
         return new Response("Missing 'org' query param", { status: 400 });
       }
 
-      const ownersLimit = clampInt(Number(url.searchParams.get("owners") || 8), 1, 12);
-      const membersLimit = clampInt(Number(url.searchParams.get("members") || 14), 1, 28);
+      const ownersLimit = clampInt(Number(url.searchParams.get("owners") || 8), 0, 12);
+      const membersLimit = clampInt(Number(url.searchParams.get("members") || 14), 0, 28);
       const cofounderLogin = url.searchParams.get("cofounder")?.trim() || undefined;
       const theme = getTheme(url.searchParams.get("theme"));
       const avatarProxyBaseUrl = new URL(request.url);
