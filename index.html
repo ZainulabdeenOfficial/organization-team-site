@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Organization Team Site</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>GitHub Organization Team</h1>
+    <p>Enter an org name to view owners (founders) and members, then generate README/HTML snippets.</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Load organization</h2>
+      <div class="row">
+        <label class="label">
+          Organization name
+          <input id="orgInput" class="input" placeholder="e.g. github" />
+        </label>
+        <button id="loadBtn" class="btn">Load</button>
+      </div>
+      <div class="row small">
+        <span id="status" class="status"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Custom links</h2>
+      <p class="muted">Add URLs you want to include in the generated README/HTML.</p>
+
+      <div class="row">
+        <label class="label">
+          Label
+          <input id="linkLabel" class="input" placeholder="Website" />
+        </label>
+        <label class="label">
+          URL
+          <input id="linkUrl" class="input" placeholder="https://example.com" />
+        </label>
+        <button id="addLinkBtn" class="btn secondary">Add link</button>
+      </div>
+
+      <div id="linksList" class="chips"></div>
+    </section>
+
+    <section class="grid">
+      <section class="card">
+        <h2>Founder / Owners</h2>
+        <div id="ownersGrid" class="people"></div>
+      </section>
+
+      <section class="card">
+        <h2>Members</h2>
+        <div id="membersGrid" class="people"></div>
+      </section>
+    </section>
+
+    <section class="card">
+      <h2>Generate snippets</h2>
+      <div class="row">
+        <button id="genReadmeBtn" class="btn">Generate README.md Markdown</button>
+        <button id="genHtmlBtn" class="btn secondary">Generate HTML embed</button>
+        <button id="copyBtn" class="btn ghost" disabled>Copy output</button>
+      </div>
+      <textarea id="output" class="output" placeholder="Your generated snippet will appear here..."></textarea>
+      <p class="muted small">
+        Notes: Public members are shown without a token. Owners are approximated as members with role=admin via the Members API.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Powered by GitHub public APIs.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
