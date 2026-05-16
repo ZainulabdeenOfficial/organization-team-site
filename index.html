@@ -9,7 +9,7 @@
 <body>
   <header class="header">
     <h1>GitHub Organization Team</h1>
-    <p>Enter an org name to view owners (founders) and members, then generate README/HTML snippets.</p>
+    <p>Enter an org name to view owners (founders) and members. Generate a README snippet or a card URL.</p>
   </header>
 
   <main class="container">
@@ -29,7 +29,7 @@
 
     <section class="card">
       <h2>Custom links</h2>
-      <p class="muted">Add URLs you want to include in the generated README/HTML.</p>
+      <p class="muted">Add URLs you want included in the generated README/HTML output.</p>
 
       <div class="row">
         <label class="label">
@@ -59,21 +59,22 @@
     </section>
 
     <section class="card">
-      <h2>Generate snippets</h2>
+      <h2>Generated outputs</h2>
       <div class="row">
         <button id="genReadmeBtn" class="btn">Generate README.md Markdown</button>
         <button id="genHtmlBtn" class="btn secondary">Generate HTML embed</button>
+        <button id="genCardUrlBtn" class="btn ghost">Generate Card URL</button>
         <button id="copyBtn" class="btn ghost" disabled>Copy output</button>
       </div>
-      <textarea id="output" class="output" placeholder="Your generated snippet will appear here..."></textarea>
+      <textarea id="output" class="output" placeholder="Generated content will appear here..."></textarea>
       <p class="muted small">
-        Notes: Public members are shown without a token. Owners are approximated as members with role=admin via the Members API.
+        Card URL uses an <code>img</code> tag pointing to <code>/api/card.svg?org=ORG</code>. For a true dynamic card, this repo includes a Cloudflare Worker template.
       </p>
     </section>
   </main>
 
   <footer class="footer">
-    <small>Powered by GitHub public APIs.</small>
+    <small>Static UI + optional card service.</small>
   </footer>
 
   <script src="app.js"></script>

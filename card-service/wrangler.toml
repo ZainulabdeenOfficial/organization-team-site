@@ -1,0 +1,7 @@
+name = "org-team-card"
+main = "src/index.ts"
+compatibility_date = "2026-05-16"
+
+[vars]
+# Optional: set a GitHub token to increase rate limits and access org members you can see.
+# GITHUB_TOKEN = "..."
