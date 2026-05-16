@@ -1,3 +1,4 @@
+![](https://org-team-card.zu4425.workers.dev/api/card.svg?org=Vector-OS&v=2026-05-16-3)
 # Organization Team Site
 
 A simple static website that lets you enter a GitHub organization name and displays:
