@@ -28,7 +28,21 @@
     </section>
 
     <section class="card">
-      <h2>Card service (optional)</h2>
+      <h2>GitHub Authentication (optional)</h2>
+      <p class="muted">For organizations that restrict API access, provide a GitHub personal access token. It's stored locally only.</p>
+      <div class="row">
+        <label class="label">
+          GitHub Personal Access Token
+          <input id="githubTokenInput" class="input" placeholder="ghp_..." />
+        </label>
+        <button id="saveTokenBtn" class="btn secondary">Save</button>
+      </div>
+      <p class="muted small">
+        Create a token at <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">GitHub Settings</a>. Requires <code>public_repo</code> scope. Token stays private (not sent to any server).
+      </p>
+    </section>
+
+    <section class="card">
       <p class="muted">GitHub Pages is static, so the dynamic SVG card must be served from a separate URL (e.g. the included Cloudflare Worker).</p>
       <div class="row">
         <label class="label">

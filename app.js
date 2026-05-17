@@ -4,10 +4,12 @@ const state = {
   org: "",
   owners: [],
   members: [],
-  links: []
+  links: [],
+  ghToken: ""
 };
 
 const CARD_SERVICE_BASE_URL_STORAGE_KEY = "orgTeamCardBaseUrl";
+const GITHUB_TOKEN_STORAGE_KEY = "orgTeamGithubToken";
 
 function normalizeBaseUrl(url){
   const trimmed = String(url || "").trim();
@@ -51,6 +53,35 @@ function initCardServiceUi(){
     const normalized = setCardServiceBaseUrl(input.value);
     input.value = normalized;
     setStatus(normalized ? "Card service URL saved." : "Card service URL cleared.");
+  });
+}
+
+function getGithubToken(){
+  return (localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || "").trim();
+}
+
+function setGithubToken(token){
+  const trimmed = (token || "").trim();
+  if (!trimmed){
+    localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);
+  }else{
+    localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, trimmed);
+  }
+  state.ghToken = trimmed;
+  return trimmed;
+}
+
+function initGithubTokenUi(){
+  const input = document.getElementById("githubTokenInput");
+  const btn = document.getElementById("saveTokenBtn");
+  if (!input || !btn) return;
+
+  input.value = getGithubToken();
+  input.type = "password";
+
+  btn.addEventListener("click", () => {
+    const saved = setGithubToken(input.value);
+    setStatus(saved ? "GitHub token saved (kept private)." : "GitHub token cleared.");
   });
 }
 
@@ -113,7 +144,8 @@ function escapeAttr(s){ return escapeHtml(s); }
 async function ghJson(url){
   const res = await fetch(url, {
     headers: {
-      "Accept": "application/vnd.github+json"
+      "Accept": "application/vnd.github+json",
+      ...(state.ghToken && { "Authorization": `token ${state.ghToken}` })
     }
   });
   if (!res.ok){
@@ -258,6 +290,8 @@ $("copyBtn").addEventListener("click", async () => {
 $("output").addEventListener("input", enableCopyIfOutput);
 
 initCardServiceUi();
+getGithubToken();
+initGithubTokenUi();
 renderLinks();
 renderPeople("ownersGrid", []);
 renderPeople("membersGrid", []);

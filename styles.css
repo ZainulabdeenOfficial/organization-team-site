@@ -39,6 +39,8 @@ body{
 h2{margin:0 0 12px;font-size:18px}
 .muted{color:rgba(238,241,255,.75)}
 .small{font-size:12px}
+.muted a{color:rgba(238,241,255,.75);text-decoration:none}
+.muted a:hover{text-decoration:underline;color:var(--btn)}
 
 .row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .row.small{margin-top:8px;align-items:center}
