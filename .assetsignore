@@ -1,0 +1,3 @@
+﻿card-service/**
+**/node_modules/**
+**/*.exe

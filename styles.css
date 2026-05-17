@@ -76,6 +76,8 @@ h2{margin:0 0 12px;font-size:18px}
 .person .meta{min-width:0}
 .person .name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .person .sub{color:rgba(238,241,255,.75);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.person .sub a{color:rgba(238,241,255,.75);text-decoration:none}
+.person .sub a:hover{text-decoration:underline;color:var(--btn)}
 
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .chip{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;background:var(--chip);border:1px solid var(--border);border-radius:999px}

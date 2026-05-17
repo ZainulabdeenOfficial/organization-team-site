@@ -1,0 +1,5 @@
+@"
+card-service/**
+**/node_modules/**
+**/*.exe
+"@ | Out-File -Encoding utf8 -NoNewline .wranglerignore

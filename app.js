@@ -167,7 +167,7 @@ function buildReadmeMarkdown(){
 
   lines.push("## Team card");
   lines.push("");
-  lines.push(`![${state.org} team card](${cardUrlForOrg(state.org)})`);
+  lines.push(`![${escapeHtml(state.org)} team card](${cardUrlForOrg(state.org)})`);
   lines.push("");
 
   if (state.links.length){

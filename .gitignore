@@ -1,0 +1,14 @@
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
+**/node_modules/**
+**/.git/**
+**/.github/**
+**/.vscode/**
+**/bin/**
+**/obj/**
+**/*.exe
+card-service/node_modules/@cloudflare/workerd-windows-64/bin/workerd.exe
