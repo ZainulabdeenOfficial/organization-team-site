@@ -124,6 +124,10 @@ function isValidGitHubLogin(login: string) {
   return /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(login);
 }
 
+function normalizePathname(pathname: string) {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+}
+
 function buildAvatarPattern(login: string, href: string, x: number, y: number, size: number) {
   // Unique id per user+position to avoid collisions.
   const id = `av_${login.replace(/[^a-zA-Z0-9_-]/g, "_")}_${x}_${y}`;
@@ -322,9 +326,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
       const url = new URL(request.url);
+      const pathname = normalizePathname(url.pathname);
 
       // Route: /api/avatar?u=LOGIN&s=SIZE
-      if (url.pathname.endsWith("/api/avatar")) {
+      if (pathname === "/api/avatar") {
         const login = url.searchParams.get("u")?.trim();
         if (!login) {
           return new Response("Missing 'u' query param", { status: 400 });
@@ -349,13 +354,16 @@ export default {
           status: 200,
           headers: {
             "Content-Type": upstream.headers.get("content-type") || "image/png",
-            "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400"
+            "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400",
+            "Access-Control-Allow-Origin": "*",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+            "X-Content-Type-Options": "nosniff"
           }
         });
       }
 
       // Route: /api/card.svg?org=ORG
-      if (!url.pathname.endsWith("/api/card.svg")) {
+      if (pathname !== "/api/card.svg") {
         return new Response("Not found", { status: 404 });
       }
 
@@ -369,7 +377,7 @@ export default {
       const cofounderLogin = url.searchParams.get("cofounder")?.trim() || undefined;
       const theme = getTheme(url.searchParams.get("theme"));
       const avatarProxyBaseUrl = new URL(request.url);
-      avatarProxyBaseUrl.pathname = avatarProxyBaseUrl.pathname.replace(/\/card\.svg$/, "/avatar");
+      avatarProxyBaseUrl.pathname = pathname.replace(/\/api\/card\.svg$/, "/api/avatar");
       avatarProxyBaseUrl.search = "";
       avatarProxyBaseUrl.hash = "";
 
@@ -402,7 +410,10 @@ export default {
         status: 200,
         headers: {
           "Content-Type": "image/svg+xml; charset=utf-8",
-          "Cache-Control": "public, max-age=900" // 15 min
+          "Cache-Control": "public, max-age=900", // 15 min
+          "Access-Control-Allow-Origin": "*",
+          "Cross-Origin-Resource-Policy": "cross-origin",
+          "X-Content-Type-Options": "nosniff"
         }
       });
     } catch (e: any) {
